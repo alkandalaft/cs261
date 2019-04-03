@@ -7,6 +7,7 @@ public:
 	static const uint32_t	kWelcomeCC = 'WLCM';
 	static const uint32_t	kStateCC = 'STAT';
 	static const uint32_t	kInputCC = 'INPT';
+	static const uint32_t	kHyperCC = 'HYPE';
 	static const int		kMaxPacketsPerFrameCount = 10;
 
 	NetworkManager();
