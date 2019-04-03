@@ -1,3 +1,4 @@
+
 class NetworkManagerServer : public NetworkManager
 {
 public:
@@ -19,6 +20,9 @@ public:
 			void			RespawnCats();
 
 			ClientProxyPtr	GetClientProxy( int inPlayerId ) const;
+
+			vector<deque<Vector3>> positionHistory;
+			vector<deque<Vector3>> rotationHistory;
 
 private:
 			NetworkManagerServer();

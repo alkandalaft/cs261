@@ -49,6 +49,10 @@ void NetworkManagerServer::ProcessPacket( ClientProxyPtr inClientProxy, InputMem
 	//remember we got a packet so we know not to disconnect for a bit
 	inClientProxy->UpdateLastPacketTime();
 
+	Vector3 hyperRotation, hyperPosition;
+	float hyperYarnActivationTimestamp;
+	int dequeIndex;
+
 	uint32_t	packetType;
 	inInputStream.Read( packetType );
 	switch( packetType )
@@ -63,6 +67,21 @@ void NetworkManagerServer::ProcessPacket( ClientProxyPtr inClientProxy, InputMem
 		{
 			HandleInputPacket( inClientProxy, inInputStream );
 		}
+		break;
+	case kHyperCC:
+		
+		inInputStream.Read(hyperYarnActivationTimestamp);
+
+		dequeIndex = inClientProxy->GetPlayerId();
+		for (auto posit = positionHistory[dequeIndex].begin(), rotit = rotationHistory[dequeIndex].begin(); posit != positionHistory[dequeIndex].end(); ++posit, ++rotit)
+		{
+			if (posit->mZ == hyperYarnActivationTimestamp)
+			{
+				hyperRotation = *rotit;
+				hyperPosition = *posit;
+			}
+		}
+
 		break;
 	default:
 		LOG( "Unknown packet type received from %s", inClientProxy->GetSocketAddress().ToString().c_str() );
@@ -98,6 +117,10 @@ void NetworkManagerServer::HandlePacketFromNewClient( InputMemoryBitStream& inIn
 		{
 			newClientProxy->GetReplicationManagerServer().ReplicateCreate( pair.first, pair.second->GetAllStateMask() );
 		}
+
+		deque<Vector3> newDeque;
+		positionHistory.push_back(newDeque);
+		rotationHistory.push_back(newDeque);
 	}
 	else
 	{
@@ -276,6 +299,10 @@ void NetworkManagerServer::CheckForDisconnects()
 
 void NetworkManagerServer::HandleClientDisconnected( ClientProxyPtr inClientProxy )
 {
+	positionHistory[inClientProxy->GetPlayerId()].clear();
+	rotationHistory[inClientProxy->GetPlayerId()].clear();
+
+
 	mPlayerIdToClientMap.erase( inClientProxy->GetPlayerId() );
 	mAddressToClientMap.erase( inClientProxy->GetSocketAddress() );
 	static_cast< Server* > ( Engine::sInstance.get() )->HandleLostClient( inClientProxy );
