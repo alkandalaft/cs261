@@ -1,3 +1,4 @@
+#include <math.h>
 class Vector3
 {
 public:
